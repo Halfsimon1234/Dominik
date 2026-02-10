@@ -1,13 +1,7 @@
 import 'package:flutter/material.dart';
 import 'screens/homescreen.dart'; // homescreen importieren
 
-// Test
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+import 'screens/login_screen.dart';
 
   // This widget is the root of your application.
   @override

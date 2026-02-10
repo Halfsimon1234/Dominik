@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 /// Flutter code sample for [TextField].
-// asdf
+
 class ObscuredTextFieldSample extends StatelessWidget {
   const ObscuredTextFieldSample({super.key});
 
@@ -9,9 +9,32 @@ class ObscuredTextFieldSample extends StatelessWidget {
   Widget build(BuildContext context) {
     return const SizedBox(
       width: 250,
-      child: TextField(
-        obscureText: true,
-        decoration: InputDecoration(border: OutlineInputBorder(), labelText: 'Password'),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            decoration: InputDecoration(
+              border: OutlineInputBorder(),
+              labelText: 'Username',
+              prefixIcon: Icon(Icons.person),
+            ),
+          ),
+          SizedBox(height: 16), // Abstand
+          TextField(
+            obscureText: true,
+            decoration: InputDecoration(
+              border: OutlineInputBorder(),
+              labelText: 'Password',
+              prefixIcon: Icon(Icons.lock),
+
+            ),
+          ),
+          SizedBox(height: 16), // Abstand
+
+          
+          
+
+        ],
       ),
     );
   }
