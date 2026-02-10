@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'screens/login_screen.dart';
+
 /// Flutter code sample for [TextField].
 
 class ObscuredTextFieldSample extends StatelessWidget {
