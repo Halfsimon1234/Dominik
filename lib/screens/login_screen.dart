@@ -26,14 +26,24 @@ class ObscuredTextFieldSample extends StatelessWidget {
               border: OutlineInputBorder(),
               labelText: 'Password',
               prefixIcon: Icon(Icons.lock),
-
             ),
           ),
           SizedBox(height: 16), // Abstand
 
-          
-          
-
+          // Row mit zwei Buttons
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              ElevatedButton(
+                onPressed: null, // hier kannst du später die Login-Logik einfügen
+                child: Text('Login'),
+              ),
+              ElevatedButton(
+                onPressed: null, // hier kannst du später die Register-Logik einfügen
+                child: Text('Register'),
+              ),
+            ],
+          ),
         ],
       ),
     );
