@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'screens/homescreen.dart'; // deine Datei importieren
+import 'screens/homescreen.dart'; // homescreen importieren
 
 // Test
 void main() {

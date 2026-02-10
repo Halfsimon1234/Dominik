@@ -1,5 +1,8 @@
 // Testkommentar
 import 'package:flutter/material.dart'; // Material Design Widgets importieren
+import 'createTrainingScreen.dart';
+import 'startTrainingScreen.dart';
+import 'lastTrainingsScreen.dart';
 
 // Globale Variable
 double buttonSpace = 20.0;
@@ -11,7 +14,7 @@ class HomeScreen extends StatelessWidget {  // neues Widget HomeScreen, das von 
   Widget build(BuildContext context) {  // jedes Widget braucht build Methode -> Informationen über Position, Umgebung, ...
     return Scaffold(  // Grundgerüst für eine Seite
       appBar: AppBar( // obere Leiste der Seite
-        title: const Text('Gym App'),
+        title: const Text('Rep-Track'),
       ),
       body: Padding(  // Hauptinhalt
         padding: const EdgeInsets.all(16.0),  // rundherum 16 Pixel Abstand
@@ -35,6 +38,12 @@ class HomeScreen extends StatelessWidget {  // neues Widget HomeScreen, das von 
               onPressed: () {
                 // TODO: Navigation zum Training starten Screen
                 print('Training starten gedrückt');
+                Navigator.push( // auf eine neue Seite navigieren
+                  context,
+                  MaterialPageRoute(  // erstelle eine neue Route (Seite)
+                    builder: (context) => const Starttrainingscreen(),  // definiert, welche Seite angezeigt wird
+                  ),
+                );
               },
               child: const Text('Training starten'),  // Text auf dem Button
             ),
@@ -43,8 +52,13 @@ class HomeScreen extends StatelessWidget {  // neues Widget HomeScreen, das von 
             // Button 2: Letzte Trainings
             ElevatedButton(
               onPressed: () {
-                // TODO: Navigation zum Letzte Trainings Screen
                 print('Letzte Trainings gedrückt');
+                 Navigator.push( // auf eine neue Seite navigieren
+                  context,
+                  MaterialPageRoute(  // erstelle eine neue Route (Seite)
+                    builder: (context) => const LastTrainingsScreen(),  // definiert, welche Seite angezeigt wird
+                  ),
+                );
               },
               child: const Text('Letzte Trainings'),  
             ),
@@ -53,8 +67,13 @@ class HomeScreen extends StatelessWidget {  // neues Widget HomeScreen, das von 
             // Button 3: Trainingsplan erstellen
             ElevatedButton(
               onPressed: () {
-                // TODO: Navigation zum Trainingsplan erstellen Screen
                 print('Trainingsplan erstellen gedrückt');
+                Navigator.push( // auf eine neue Seite navigieren
+                  context,
+                  MaterialPageRoute(  // erstelle eine neue Route (Seite)
+                    builder: (context) => const TrainingsplanScreen(),  // definiert, welche Seite angezeigt wird
+                  ),
+                );
               },
               child: const Text('Trainingsplan erstellen'),
             ),
