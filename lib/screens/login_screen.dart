@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+// adf
 /// Flutter code sample for [TextField].
 class ObscuredTextFieldSample extends StatelessWidget {
   const ObscuredTextFieldSample({super.key});
@@ -21,7 +21,7 @@ class ObscuredTextFieldSample extends StatelessWidget {
               labelText: 'Username',
             ),
           ),
-          
+
           SizedBox(height: 16), // Abstand
 
           TextField
