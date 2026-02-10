@@ -3,5 +3,5 @@ import 'screens/login_screen.dart';
 // Test
 void main() {
 
-  runApp(const ObscuredTextFieldSample());
+  runApp(const TextFieldExampleApp());
 }
