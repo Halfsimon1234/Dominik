@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1033919500012",
+    "project_id": "typ-dominik",
+    "storage_bucket": "typ-dominik.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1033919500012:android:815df9703df10c899b5fc9",
+        "android_client_info": {
+          "package_name": "com.dominik.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCmVNuJeSr-Rit5ZG07kFQZI0eYopuY9DQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
