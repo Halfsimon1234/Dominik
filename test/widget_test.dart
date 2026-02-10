@@ -1,5 +1,8 @@
 // This is a basic Flutter widget test.
 //
+
+//TESTTTT, ob Petra reinschreiben kann
+
 // To perform an interaction with a widget in your test, use the WidgetTester
 // utility in the flutter_test package. For example, you can send tap and scroll
 // gestures. You can also use WidgetTester to find child widgets in the widget
@@ -24,7 +27,7 @@ void main() {
     await tester.pump();
 
     // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing); // test
+    expect(find.text('0'), findsNothing); 
     expect(find.text('1'), findsOneWidget);
   });
 }
