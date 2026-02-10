@@ -36,7 +36,6 @@ class HomeScreen extends StatelessWidget {  // neues Widget HomeScreen, das von 
             // Button 1: Training starten
             ElevatedButton(
               onPressed: () {
-                // TODO: Navigation zum Training starten Screen
                 print('Training starten gedrückt');
                 Navigator.push( // auf eine neue Seite navigieren
                   context,
