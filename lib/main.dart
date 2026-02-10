@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'screens/homescreen.dart'; // deine Datei importieren
 
 // Test
 void main() {
@@ -12,6 +13,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      /*
       title: 'Flutter Demo',
       theme: ThemeData(
         // This is the theme of your application.
@@ -32,10 +34,18 @@ class MyApp extends StatelessWidget {
         colorScheme: .fromSeed(seedColor: const Color.fromARGB(255, 151, 47, 81)),
       ),
       home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      */
+      title: 'Gym App',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: const HomeScreen(), // Hier deine HomeScreen-Seite einbinden
     );
+    
   }
 }
 
+/*
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
 
@@ -121,3 +131,4 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
+*/
