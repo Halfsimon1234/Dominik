@@ -47,6 +47,8 @@ class ObscuredTextFieldSample extends StatelessWidget {
         ],
       ),
     );
+
+    
   }
 }
 
@@ -62,5 +64,6 @@ class TextFieldExampleApp extends StatelessWidget {
     );
   }
 }
+
 
 void main() => runApp(const TextFieldExampleApp());
