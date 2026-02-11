@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
-import 'screens/homescreen.dart'; // homescreen importieren
- 
-// Test
-void main() {
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';      // von FlutterFire CLI erstellt
+import 'screens/homescreen.dart';    // dein HomeScreen
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();  // wichtig für Firebase
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const MyApp());
 }
  
