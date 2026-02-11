@@ -1,37 +1,53 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-// UUIDs vom ESP32, exakt wie auf dem Gerät
+// UUIDs vom ESP32
 const String SERVICE_UUID = "1234abcd-0000-1000-8000-00805f9b34fb";
 const String CHAR_UUID = "1234abcd-0001-1000-8000-00805f9b34fb";
 
-class BleTestPage extends StatefulWidget {
-  const BleTestPage({super.key});
+void main() => runApp(const MaterialApp(home: BleReceiverPage()));
+
+class BleReceiverPage extends StatefulWidget {
+  const BleReceiverPage({super.key});
 
   @override
-  State<BleTestPage> createState() => _BleTestPageState();
+  State<BleReceiverPage> createState() => _BleReceiverPageState();
 }
 
-class _BleTestPageState extends State<BleTestPage> {
+class _BleReceiverPageState extends State<BleReceiverPage> {
   List<ScanResult> devices = [];
   BluetoothDevice? connectedDevice;
   BluetoothCharacteristic? dataChar;
-
   String receivedData = "Keine Daten";
 
   @override
   void initState() {
     super.initState();
-    requestPermissions();
+    _initBle();
+  }
+
+  Future<void> _initBle() async {
+    if (!Platform.isAndroid && !Platform.isIOS) return;
+
+    // Permissions anfordern
+    await [
+      Permission.bluetoothScan,
+      Permission.bluetoothConnect,
+      Permission.location,
+    ].request();
+
+    // Scan starten
     startScan();
   }
 
   void startScan() {
+    if (!Platform.isAndroid && !Platform.isIOS) return;
+
     devices.clear();
     FlutterBluePlus.startScan(timeout: const Duration(seconds: 6));
-
     FlutterBluePlus.scanResults.listen((results) {
       setState(() {
         devices = results;
@@ -40,30 +56,29 @@ class _BleTestPageState extends State<BleTestPage> {
   }
 
   Future<void> connectToDevice(BluetoothDevice device) async {
-    // Stopp den Scan bevor wir verbinden
+    if (!Platform.isAndroid && !Platform.isIOS) return;
+
+    // Scan stoppen
     FlutterBluePlus.stopScan();
 
-    // Verbindung herstellen (autoConnect false)
+    // Verbindung herstellen
     await device.connect(autoConnect: false);
     connectedDevice = device;
 
     // Services entdecken
     List<BluetoothService> services = await device.discoverServices();
-    await Future.delayed(const Duration(milliseconds: 200)); // kleine Pause
 
-    // Service & Characteristic suchen
     for (var service in services) {
       if (service.uuid.toString().toLowerCase() == SERVICE_UUID.toLowerCase()) {
         for (var char in service.characteristics) {
           if (char.uuid.toString().toLowerCase() == CHAR_UUID.toLowerCase()) {
             dataChar = char;
 
-            // Notification aktivieren
+            // Notify aktivieren
             await char.setNotifyValue(true);
 
-            // Listen auf Werte
+            // Wertänderungen abhören
             char.value.listen((value) {
-              print("Raw BLE data: $value"); // Debug: Rohdaten
               String data = utf8.decode(value, allowMalformed: true);
               setState(() {
                 receivedData = data;
@@ -80,10 +95,11 @@ class _BleTestPageState extends State<BleTestPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("BLE Test Verbindung")),
+      appBar: AppBar(title: const Text("ESP32 BLE Receiver")),
       body: connectedDevice == null
           ? Column(
               children: [
+                const SizedBox(height: 10),
                 ElevatedButton(
                   onPressed: startScan,
                   child: const Text("Neu scannen"),
@@ -94,7 +110,6 @@ class _BleTestPageState extends State<BleTestPage> {
                     itemBuilder: (context, index) {
                       final d = devices[index].device;
                       final name = d.name.isNotEmpty ? d.name : "Unbekanntes Gerät";
-
                       return ListTile(
                         title: Text(name),
                         subtitle: Text(d.id.id),
@@ -116,10 +131,7 @@ class _BleTestPageState extends State<BleTestPage> {
                     style: const TextStyle(fontSize: 18),
                   ),
                   const SizedBox(height: 20),
-                  Text(
-                    "Empfangene Daten:",
-                    style: const TextStyle(fontSize: 16),
-                  ),
+                  const Text("Empfangene Daten:", style: TextStyle(fontSize: 16)),
                   const SizedBox(height: 10),
                   Text(
                     receivedData,
@@ -142,12 +154,4 @@ class _BleTestPageState extends State<BleTestPage> {
             ),
     );
   }
-
-  Future<void> requestPermissions() async {
-  await [
-    Permission.bluetoothScan,
-    Permission.bluetoothConnect,
-    Permission.location,
-  ].request();
-}
 }
