@@ -24,7 +24,7 @@ class HomeScreen extends StatelessWidget {  // neues Widget HomeScreen, das von 
           children: [ // einzelnen Widgets
             // Text oben
             const Text(
-              'Start Strong - Finish Stronger',
+              'Start Strong - Finish StrongerA',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 24,
