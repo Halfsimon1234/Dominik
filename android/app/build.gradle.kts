@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.servusmona"
+    namespace = "com.servusmona.app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
