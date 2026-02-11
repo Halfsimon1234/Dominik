@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';      // von FlutterFire CLI erstellt
-import 'screens/homescreen.dart';    // dein HomeScreen
+import 'package:firebase_auth/firebase_auth.dart';
+import 'screens/homescreen.dart';    
+import 'screens/login_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();  // wichtig für Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  runApp(const MyApp());
+  await Firebase.initializeApp();
+  runApp(const MyApp());  // startet die App 
 }
  
 class MyApp extends StatelessWidget {
@@ -44,9 +43,27 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const HomeScreen(), // Hier deine HomeScreen-Seite einbinden
+       
+      debugShowCheckedModeBanner: false,
+      home: const AuthWrapper(),
     );
    
+  }
+}
+
+class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) { // prüft ob gerade jemand eingeloggt ist 
+      return const HomeScreen();
+    } else {
+      return const LoginScreen();
+    }
   }
 }
  
