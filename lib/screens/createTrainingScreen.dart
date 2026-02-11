@@ -1,6 +1,6 @@
 // Trainingsplan erstellen Screen
 import 'package:flutter/material.dart';
-
+ 
 class TrainingsplanScreen extends StatefulWidget {  // stateful, da man dynamisch Übungen hinzufügt
   const TrainingsplanScreen({Key? key}) : super(key: key);
 
