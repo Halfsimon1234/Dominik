@@ -1,4 +1,5 @@
-#include <Arduino.h>
+
+/*#include <Arduino.h>
 
 #include <Wire.h>
 // Pin für den Sender
@@ -82,4 +83,4 @@ void loop()
     }
   }
 
-}
+}*/
