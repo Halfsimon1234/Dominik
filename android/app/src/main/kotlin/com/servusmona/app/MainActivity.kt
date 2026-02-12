@@ -1,4 +1,4 @@
-package com.example.servusmona
+package com.servusmona.app
 
 import io.flutter.embedding.android.FlutterActivity
 

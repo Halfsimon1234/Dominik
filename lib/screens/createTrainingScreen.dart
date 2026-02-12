@@ -1,16 +1,6 @@
 // Trainingsplan erstellen Screen
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'models/trainingsplan.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
-class _uebungsKastenData {  // gruppiert Controller für eine Übung
-  final TextEditingController nameController = TextEditingController(); // speichert die aktuelle Eingabe
-  final TextEditingController saetzeController = TextEditingController();
-  final TextEditingController wiederhController = TextEditingController();
-}
-
- 
 class TrainingsplanScreen extends StatefulWidget {  // stateful, da man dynamisch Übungen hinzufügt
   const TrainingsplanScreen({Key? key}) : super(key: key);
 
@@ -20,9 +10,7 @@ class TrainingsplanScreen extends StatefulWidget {  // stateful, da man dynamisc
 
 class _TrainingsplanScreenState extends State<TrainingsplanScreen> {  // State-Klasse
   // Liste der Übungen (nur für die Anzahl der Kästchen)
-  final TextEditingController _planNameController = TextEditingController();  // speichert namen des Trainingsplans 
   final List<int> _uebungen = []; // Anzahl der Übungen -> wie viele Kästchen gezeichnet werden sollen
-  final List<_uebungsKastenData> _uebungsData = []; // eigentliche Controller-Daten für jede Übung 
 
   @override
   Widget build(BuildContext context) {  // build-Methode zeichnet die Seite (Flutter ruft sie beim ersten Anzeigen und bei setState() auf)
@@ -40,8 +28,7 @@ class _TrainingsplanScreenState extends State<TrainingsplanScreen> {  // State-K
             InkWell(
               onTap: () {
                 setState(() {
-                  _uebungen.add(_uebungen.length);  // fügt ein neues Kästchen hinzu
-                  _uebungsData.add(_uebungsKastenData()); // erstellt Controller für das neue Kästchen
+                  _uebungen.add(_uebungen.length);
                 });
               },
               child: Row(
@@ -57,39 +44,12 @@ class _TrainingsplanScreenState extends State<TrainingsplanScreen> {  // State-K
 
             // Fertig Button (rechts)
             ElevatedButton(
-              onPressed: () async { 
-                String planName = _planNameController.text; // holt sich den Namen vom Controller
-                if (planName.isEmpty) return;
-
-                // Textfield-Daten der Übungen in Uebung-Objekte umwandeln
-                List<Uebung> uebungenListe = _uebungsData.map((data) {
-                  return Uebung(
-                    name: data.nameController.text,
-                    saetze: int.tryParse(data.saetzeController.text) ?? 0,
-                    wiederholungen: int.tryParse(data.wiederhController.text) ?? 0,
-                  );
-                }).toList();  // zu einer Liste machen
-
-                Trainingsplan plan = Trainingsplan(name: planName, uebungen: uebungenListe);  // Trainingsplan-Objekt erstellen
-
-                // UID des angemeldeten Users holen 
-                final String uid = FirebaseAuth.instance.currentUser!.uid;
-
-                // Trainingsplan in Firebase speichern, mit ownerUid
-                await FirebaseFirestore.instance.collection('trainingsplaene').add({
-                  ...plan.toMap(),     // alle bisherigen Felder
-                  'ownerUid': uid,     // <--- hier die UID hinzufügen
-    });
-                // Bestätigung anzeigen (context ist wichtig, damit Flutter weiß, wo die Snackbar angezeigt werden soll))
-                ScaffoldMessenger.of(context).showSnackBar( 
-                  SnackBar(content: Text('Trainingsplan gespeichert!'))
-                );
- 
-                Navigator.popUntil(context, (route) => route.isFirst); // zurück zur vorherigen Seite
+              onPressed: () {
+                // TODO: Fertig
+                print('Trainingsplan fertig');
               },
               child: const Text('Fertig'),
             ),
-
           ],
         ),
       ),
@@ -101,7 +61,6 @@ class _TrainingsplanScreenState extends State<TrainingsplanScreen> {  // State-K
           children: [
             // Name des Trainingsplans
             TextField(
-              controller: _planNameController,
               decoration: const InputDecoration(   // Styling
                 labelText: 'Name des Trainingsplans',
                 border: OutlineInputBorder(),
@@ -149,7 +108,9 @@ class _TrainingsplanScreenState extends State<TrainingsplanScreen> {  // State-K
             Expanded( // damit die Liste scrollen kann
               child: ListView.builder(
                 itemCount: _uebungen.length,  // soviele Kästchen, wie Elemente in _uebungen
-                itemBuilder: (context, index) => _uebungsKasten(index), // jedes Kästcheen zeichnen 
+                itemBuilder: (context, index) { // jedes Kästchen einzeln zeichnen 
+                  return _uebungsKasten();
+                },
               ),
             ),
 
@@ -162,8 +123,7 @@ class _TrainingsplanScreenState extends State<TrainingsplanScreen> {  // State-K
 
   // Ausgelagerte Funktion
   // Einzelnes Übungs-Kästchen
-  Widget _uebungsKasten(int index) {
-    final data = _uebungsData[index];
+  Widget _uebungsKasten() {
     return Container( // Rahmen um die Textfelder
       margin: const EdgeInsets.symmetric(vertical: 6),
       padding: const EdgeInsets.all(8),
@@ -177,7 +137,6 @@ class _TrainingsplanScreenState extends State<TrainingsplanScreen> {  // State-K
           Expanded(
             flex: 3,
             child: TextField(
-              controller: data.nameController,  // verbindet TextField mit Controller
               decoration: const InputDecoration(
                 hintText: 'Name...',
                 border: OutlineInputBorder(),
@@ -192,7 +151,6 @@ class _TrainingsplanScreenState extends State<TrainingsplanScreen> {  // State-K
           Expanded(
             flex: 1,
             child: TextField(
-              controller: data.saetzeController,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(
                 hintText: 'Sätze...',
@@ -208,7 +166,6 @@ class _TrainingsplanScreenState extends State<TrainingsplanScreen> {  // State-K
           Expanded(
             flex: 1,
             child: TextField(
-              controller: data.wiederhController,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(
                 hintText: 'Wh...',

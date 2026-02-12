@@ -1,12 +1,8 @@
 // Testkommentar
 import 'package:flutter/material.dart'; // Material Design Widgets importieren
-import 'package:firebase_auth/firebase_auth.dart';
 import 'createTrainingScreen.dart';
 import 'startTrainingScreen.dart';
 import 'lastTrainingsScreen.dart';
-import 'login_screen.dart';
-
-
 
 // Globale Variable
 double buttonSpace = 20.0;
@@ -84,14 +80,9 @@ class HomeScreen extends StatelessWidget {  // neues Widget HomeScreen, das von 
 
             // Button 4: Logout
             ElevatedButton(
-              onPressed: () async {
-                await FirebaseAuth.instance.signOut();  // loggt User aus 
-
-                Navigator.pushAndRemoveUntil( // neue Seiten auf den Stack legen und alte Seiten löschen, damit man nicht mehr zurück zum HomeScreen kann ohne Login
-                  context,
-                  MaterialPageRoute(builder: (_) => const LoginScreen()),
-                  (route) => false,
-                );
+              onPressed: () {
+                // TODO: Navigation zum Logout
+                print('Logout gedrückt');
               },
               child: const Text('Logout'),
             ),
