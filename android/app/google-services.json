@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "1033919500012",
-    "project_id": "typ-dominik",
-    "storage_bucket": "typ-dominik.firebasestorage.app"
+    "project_number": "295684564949",
+    "project_id": "cooleappdominik",
+    "storage_bucket": "cooleappdominik.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1033919500012:android:815df9703df10c899b5fc9",
+        "mobilesdk_app_id": "1:295684564949:android:0e902a45c4d724619a3f5c",
         "android_client_info": {
-          "package_name": "com.dominik.app"
+          "package_name": "com.servusmona.app"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyCmVNuJeSr-Rit5ZG07kFQZI0eYopuY9DQ"
+          "current_key": "AIzaSyAm2O9auRne90Ez2pwsdFw-5Yh1DJGz-jY"
         }
       ],
       "services": {

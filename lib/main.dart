@@ -1,16 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'screens/homescreen.dart';    
+import 'screens/login_screen.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();  // wichtig für Firebase
+  await Firebase.initializeApp();
+  runApp(const MyApp());  // startet die App 
 }
-
+ 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
-
+ 
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      /*
       title: 'Flutter Demo',
       theme: ThemeData(
         // This is the theme of your application.
@@ -28,34 +35,60 @@ class MyApp extends StatelessWidget {
         //
         // This works for code too, not just values: Most code changes can be
         // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: .fromSeed(seedColor: const Color.fromARGB(255, 151, 47, 81)),
       ),
       home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      */
+      title: 'Gym App',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+       
+      debugShowCheckedModeBanner: false,
+      home: const AuthWrapper(),
     );
+   
   }
 }
 
+class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) { // prüft ob gerade jemand eingeloggt ist 
+      return const HomeScreen();
+    } else {
+      return const LoginScreen();
+    }
+  }
+}
+ 
+/*
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
-
+ 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
   // how it looks.
-
+ 
   // This class is the configuration for the state. It holds the values (in this
   // case the title) provided by the parent (in this case the App widget) and
   // used by the build method of the State. Fields in a Widget subclass are
   // always marked "final".
-
+ 
   final String title;
-
+ 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
-
+ 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
-
+ 
   void _incrementCounter() {
     setState(() {
       // This call to setState tells the Flutter framework that something has
@@ -66,7 +99,7 @@ class _MyHomePageState extends State<MyHomePage> {
       _counter++;
     });
   }
-
+ 
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -119,4 +152,11 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
     );
   }
+
+import 'screens/login_screen.dart';
+// Test
+void main() {
+ 
+  runApp(const ObscuredTextFieldSample());
 }
+*/
