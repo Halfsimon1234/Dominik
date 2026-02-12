@@ -90,7 +90,7 @@ class HomeScreen extends StatelessWidget {  // neues Widget HomeScreen, das von 
                 Navigator.push( // auf eine neue Seite navigieren
                   context,
                   MaterialPageRoute(  // erstelle eine neue Route (Seite)
-                    builder: (context) => const BleReceiverPage(),  // definiert, welche Seite angezeigt wird
+                    builder: (context) => const BluetoothReceivePage(),  // definiert, welche Seite angezeigt wird
                   ),
                 );
                
