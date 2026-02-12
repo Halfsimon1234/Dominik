@@ -12,9 +12,9 @@
             "type": "platformio-debug",
             "request": "launch",
             "name": "PIO Debug",
-            "executable": "C:/flutter/project_app/flutter_application_1/Dominik/.pio/build/my_sensor/firmware.elf",
+            "executable": "c:/Schule/Sink your Product/Flutter app/servusmona/.pio/build/my_sensor/firmware.elf",
             "projectEnvName": "my_sensor",
-            "toolchainBinDir": "C:/Users/sarah/.platformio/packages/toolchain-xtensa-esp32/bin",
+            "toolchainBinDir": "C:/Users/shere/.platformio/packages/toolchain-xtensa-esp32/bin",
             "internalConsoleOptions": "openOnSessionStart",
             "preLaunchTask": {
                 "type": "PlatformIO",
@@ -25,18 +25,18 @@
             "type": "platformio-debug",
             "request": "launch",
             "name": "PIO Debug (skip Pre-Debug)",
-            "executable": "C:/flutter/project_app/flutter_application_1/Dominik/.pio/build/my_sensor/firmware.elf",
+            "executable": "c:/Schule/Sink your Product/Flutter app/servusmona/.pio/build/my_sensor/firmware.elf",
             "projectEnvName": "my_sensor",
-            "toolchainBinDir": "C:/Users/sarah/.platformio/packages/toolchain-xtensa-esp32/bin",
+            "toolchainBinDir": "C:/Users/shere/.platformio/packages/toolchain-xtensa-esp32/bin",
             "internalConsoleOptions": "openOnSessionStart"
         },
         {
             "type": "platformio-debug",
             "request": "launch",
             "name": "PIO Debug (without uploading)",
-            "executable": "C:/flutter/project_app/flutter_application_1/Dominik/.pio/build/my_sensor/firmware.elf",
+            "executable": "c:/Schule/Sink your Product/Flutter app/servusmona/.pio/build/my_sensor/firmware.elf",
             "projectEnvName": "my_sensor",
-            "toolchainBinDir": "C:/Users/sarah/.platformio/packages/toolchain-xtensa-esp32/bin",
+            "toolchainBinDir": "C:/Users/shere/.platformio/packages/toolchain-xtensa-esp32/bin",
             "internalConsoleOptions": "openOnSessionStart",
             "loadMode": "manual"
         }
