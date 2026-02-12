@@ -1,167 +1,167 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-// UUIDs vom ESP32 - Müssen exakt mit dem Arduino-Code übereinstimmen
-const String SERVICE_UUID = "1234abcd-0000-1000-8000-00805f9b34fb";
-const String CHAR_UUID = "1234abcd-0001-1000-8000-00805f9b34fb";
+// UUIDs vom ESP32
+const String TARGET_SERVICE_UUID = "1234abcd-0000-1000-8000-00805f9b34fb";
+const String TARGET_CHAR_UUID = "1234abcd-0001-1000-8000-00805f9b34fb";
 
-void main() => runApp(const MaterialApp(
-      home: BleReceiverPage(),
-      debugShowCheckedModeBanner: false,
-    ));
-
-class BleReceiverPage extends StatefulWidget {
-  const BleReceiverPage({super.key});
-
-  @override
-  State<BleReceiverPage> createState() => _BleReceiverPageState();
+void main() {
+  runApp(const MaterialApp(home: BluetoothReceivePage()));
 }
 
-class _BleReceiverPageState extends State<BleReceiverPage> {
-  List<ScanResult> devices = [];
+class BluetoothReceivePage extends StatefulWidget {
+  const BluetoothReceivePage({super.key});
+
+  @override
+  State<BluetoothReceivePage> createState() => _BluetoothReceivePageState();
+}
+
+class _BluetoothReceivePageState extends State<BluetoothReceivePage> {
   BluetoothDevice? connectedDevice;
-  String receivedData = "Warte auf Wiederholung...";
-  bool isConnecting = false;
+  List<ScanResult> scanResults = [];
+  String reps = "0";
+  bool isScanning = false;
+  StreamSubscription? _valueSubscription;
 
   @override
   void initState() {
     super.initState();
-    _initBle();
+    _checkPermissions();
   }
 
-  Future<void> _initBle() async {
-    if (!Platform.isAndroid && !Platform.isIOS) return;
-
-    // Berechtigungen anfordern
-    await [
-      Permission.bluetoothScan,
-      Permission.bluetoothConnect,
-      Permission.location,
-    ].request();
-
-    startScan();
+  Future<void> _checkPermissions() async {
+    if (Platform.isAndroid) {
+      Map<Permission, PermissionStatus> statuses = await [
+        Permission.bluetoothScan,
+        Permission.bluetoothConnect,
+        Permission.location,
+      ].request();
+      
+      if (statuses.values.any((element) => element.isDenied)) {
+        debugPrint("Berechtigungen wurden abgelehnt");
+      }
+    }
+    _startScan();
   }
 
-  void startScan() {
-    if (!Platform.isAndroid && !Platform.isIOS) return;
-
-    setState(() => devices.clear());
-    FlutterBluePlus.startScan(timeout: const Duration(seconds: 10));
+  void _startScan() {
+    setState(() {
+      scanResults.clear();
+      isScanning = true;
+    });
+    FlutterBluePlus.startScan(timeout: const Duration(seconds: 5));
     
     FlutterBluePlus.scanResults.listen((results) {
-      if (mounted) {
-        setState(() {
-          devices = results;
-        });
-      }
+      if (mounted) setState(() => scanResults = results);
+    });
+
+    FlutterBluePlus.isScanning.listen((scanning) {
+      if (mounted && !scanning) setState(() => isScanning = false);
     });
   }
 
-  Future<void> connectToDevice(BluetoothDevice device) async {
-    setState(() => isConnecting = true);
-
+  Future<void> _connect(BluetoothDevice device) async {
     try {
-      await FlutterBluePlus.stopScan();
-
       // 1. Verbindung aufbauen
       await device.connect(autoConnect: false);
-      connectedDevice = device;
+      setState(() => connectedDevice = device);
 
-      // 2. MTU für Android erhöhen (wichtig für stabile String-Übertragung)
+      // 2. MTU für Android optimieren
       if (Platform.isAndroid) {
         await device.requestMtu(223);
+        await Future.delayed(const Duration(milliseconds: 500)); 
       }
 
       // 3. Services suchen
       List<BluetoothService> services = await device.discoverServices();
-
       for (var service in services) {
-        if (service.uuid.toString().toLowerCase() == SERVICE_UUID.toLowerCase()) {
+        if (service.uuid == Guid(TARGET_SERVICE_UUID)) {
           for (var char in service.characteristics) {
-            if (char.uuid.toString().toLowerCase() == CHAR_UUID.toLowerCase()) {
+            if (char.uuid == Guid(TARGET_CHAR_UUID)) {
               
               // 4. Benachrichtigungen (Notify) aktivieren
               await char.setNotifyValue(true);
+              
+              // 5. Alten Stream schließen, falls vorhanden
+              await _valueSubscription?.cancel();
 
-              // 5. Auf Daten lauschen (onValueReceived ist der aktuelle Standard)
-              char.onValueReceived.listen((value) {
-                if (value.isEmpty) return;
-
-                try {
-                  // Versuch die Bytes als Text zu lesen
-                  String data = utf8.decode(value).trim();
-                  print("Empfangene Reps: $data");
-                  
-                  if (mounted) {
-                    setState(() {
-                      receivedData = data;
-                    });
-                  }
-                } catch (e) {
-                  // Fallback: Falls der ESP32 nur ein rohes Byte schickt
-                  if (mounted) {
-                    setState(() {
-                      receivedData = value[0].toString();
-                    });
-                  }
+              // 6. Auf Daten hören
+              _valueSubscription = char.onValueReceived.listen((value) {
+                if (value.isNotEmpty && mounted) {
+                  String decoded = utf8.decode(value);
+                  debugPrint("Empfangene Reps: $decoded");
+                  setState(() => reps = decoded);
                 }
               });
+              
+              // Einmalig lesen, falls schon ein Wert da ist
+              await char.read();
             }
           }
         }
       }
     } catch (e) {
-      print("Verbindungsfehler: $e");
-    } finally {
-      if (mounted) setState(() => isConnecting = false);
+      debugPrint("Verbindungsfehler: $e");
     }
+  }
+
+  Future<void> _disconnect() async {
+    await _valueSubscription?.cancel();
+    await connectedDevice?.disconnect();
+    setState(() {
+      connectedDevice = null;
+      reps = "0";
+    });
+  }
+
+  @override
+  void dispose() {
+    _valueSubscription?.cancel();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Rep-Track V1.0 Receiver"),
-        backgroundColor: Colors.blueGrey[900],
-        foregroundColor: Colors.white,
+        title: const Text("Rep-Counter V1.0"),
+        backgroundColor: Colors.blueAccent,
       ),
-      body: connectedDevice == null ? _buildScanList() : _buildDataView(),
+      body: connectedDevice == null ? _buildScanList() : _buildCounterView(),
     );
   }
 
   Widget _buildScanList() {
     return Column(
       children: [
-        if (isConnecting) const LinearProgressIndicator(),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: ElevatedButton.icon(
-            onPressed: startScan,
-            icon: const Icon(Icons.refresh),
-            label: const Text("Geräte suchen"),
-          ),
+        if (isScanning) const LinearProgressIndicator(),
+        const SizedBox(height: 10),
+        ElevatedButton.icon(
+          onPressed: isScanning ? null : _startScan,
+          icon: const Icon(Icons.search),
+          label: const Text("Nach Rep-Track suchen"),
         ),
         Expanded(
           child: ListView.builder(
-            itemCount: devices.length,
+            itemCount: scanResults.length,
             itemBuilder: (context, index) {
-              final d = devices[index].device;
+              final d = scanResults[index].device;
+              final name = d.platformName.isEmpty ? "Unbekanntes Gerät" : d.platformName;
               
-              // FILTER: Nur unseren ESP32 anzeigen
-              if (d.platformName != "Rep-Track V1.0") {
-                return const SizedBox.shrink();
-              }
-
+              // Filter auf euren Namen (Optional, könnt ihr auch weglassen zum Testen)
+              if (d.platformName != "Rep-Track V1.0") return const SizedBox.shrink();
+              
               return Card(
-                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
                 child: ListTile(
-                  leading: const Icon(Icons.fitness_center, color: Colors.blue),
-                  title: Text(d.platformName),
+                  title: Text(name),
                   subtitle: Text(d.remoteId.str),
-                  onTap: () => connectToDevice(d),
+                  trailing: const Icon(Icons.bluetooth_connected, color: Colors.blue),
+                  onTap: () => _connect(d),
                 ),
               );
             },
@@ -171,36 +171,21 @@ class _BleReceiverPageState extends State<BleReceiverPage> {
     );
   }
 
-  Widget _buildDataView() {
+  Widget _buildCounterView() {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          const Text("WIEDERHOLUNGEN", style: TextStyle(fontSize: 18, color: Colors.grey)),
           Text(
-            "Verbunden mit ${connectedDevice!.platformName}",
-            style: const TextStyle(fontSize: 16, color: Colors.grey),
+            reps,
+            style: const TextStyle(fontSize: 150, fontWeight: FontWeight.w900, color: Colors.blueAccent),
           ),
           const SizedBox(height: 40),
-          const Text("Wiederholungen:", style: TextStyle(fontSize: 20)),
-          Text(
-            receivedData,
-            style: const TextStyle(
-              fontSize: 16, 
-              fontWeight: FontWeight.bold, 
-              color: Colors.blue
-            ),
-          ),
-          const SizedBox(height: 50),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red[100]),
-            onPressed: () async {
-              await connectedDevice?.disconnect();
-              setState(() {
-                connectedDevice = null;
-                receivedData = "Warte auf Wiederholung...";
-              });
-            },
-            child: const Text("Verbindung trennen", style: TextStyle(color: Colors.red)),
+            onPressed: _disconnect,
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+            child: const Text("Verbindung trennen", style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
