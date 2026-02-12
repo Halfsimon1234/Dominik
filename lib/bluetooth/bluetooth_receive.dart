@@ -4,6 +4,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:provider/provider.dart';
+import 'rep_service.dart';
 
 // UUIDs vom ESP32
 const String TARGET_SERVICE_UUID = "1234abcd-0000-1000-8000-00805f9b34fb";
@@ -19,13 +21,13 @@ class BluetoothReceivePage extends StatefulWidget {
   const BluetoothReceivePage({super.key});
 
   @override
-  State<BluetoothReceivePage> createState() => _BluetoothReceivePageState();
+  State<BluetoothReceivePage> createState() => BluetoothReceivePageState();
 }
 
-class _BluetoothReceivePageState extends State<BluetoothReceivePage> {
+class BluetoothReceivePageState extends State<BluetoothReceivePage> {
   BluetoothDevice? connectedDevice;
   List<ScanResult> scanResults = [];
-  String reps = "0";
+  static String reps = "0";
   bool isScanning = false;
   StreamSubscription? _valueSubscription;
 
@@ -95,11 +97,10 @@ class _BluetoothReceivePageState extends State<BluetoothReceivePage> {
               _valueSubscription = char.onValueReceived.listen((value) {
                 if (value.isNotEmpty && mounted) {
                   String decoded = utf8.decode(value);
-                  debugPrint("Empfangene Reps: $decoded");
-                  setState(() => reps = decoded);
-                }
-              });
-              
+                  context.read<RepService>().updateFromBluetooth(decoded);
+                  }
+                });
+                            
               // Einmalig lesen, falls schon ein Wert da ist
               await char.read();
             }

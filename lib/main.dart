@@ -3,11 +3,19 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'screens/homescreen.dart';    
 import 'screens/login_screen.dart';
+import 'package:provider/provider.dart';
+import '../bluetooth/rep_service.dart';
  
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();  // wichtig für Firebase
+  WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  runApp(const MyApp());  // startet die App
+ 
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => RepService(),
+      child: const MyApp(),
+    ),
+  );
 }
  
 class MyApp extends StatelessWidget {

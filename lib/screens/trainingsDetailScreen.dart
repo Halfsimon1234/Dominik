@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'homescreen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
+import '../bluetooth/rep_service.dart';
 
 class TrainingsDetailScreen extends StatefulWidget { // Stateful, dass sich Screen ändert (counter hochzählt))
   final String planId;
@@ -71,8 +73,14 @@ Future<void> trainingSpeichern() async {
 }
 
   // FÜR SENSOR HOCHZÄHLEN -> SPÄTER BENUTZEN 
-  /*
-  void wiederholungErhoehen() {
+/*
+  void RepScan() 
+  {
+    String aktuelleReps = BluetoothReceivePageState.reps;
+    print(aktuelleReps);
+
+
+    //wiederholungen erhöhen
     if (aktiveUebungIndex != null &&  // Wenn eine Übung und ein Satz aktiv ist, dann erhöhen 
         aktiverSatzIndex != null) {
 
@@ -87,6 +95,23 @@ Future<void> trainingSpeichern() async {
 
   @override
   Widget build(BuildContext context) {
+
+    final repService = context.watch<RepService>();
+
+    if (aktiveUebungIndex != null && aktiverSatzIndex != null) {
+      
+      // Wenn Update vom Sensor kommt
+      wiederholungsCounter[aktiveUebungIndex!]![aktiverSatzIndex!] =
+          repService.currentReps;
+      
+      // Wenn fertig Signal kommt
+      if (repService.finished) {
+        repService.resetFinished();
+      
+        aktiverSatzIndex = null;
+        aktiveUebungIndex = null;
+      }
+    }
     return Scaffold(
       appBar: AppBar(title: Text(widget.planData['name'] ?? 'Training')),
       body: ListView.builder( // scrollbare Liste der Übungen
