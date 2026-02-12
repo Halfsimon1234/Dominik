@@ -35,6 +35,7 @@ class HomeScreen extends StatelessWidget {  // neues Widget HomeScreen, das von 
                 fontWeight: FontWeight.bold,
               ),
             ),
+            
             const SizedBox(height: 60), // Abstand
  
             // Button 1: Training starten

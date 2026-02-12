@@ -75,7 +75,7 @@ class _TrainingsplanScreenState extends State<TrainingsplanScreen> {
       appBar: AppBar(title: const Text('Trainingsplan erstellen')),
 
       bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.fromLTRB(12, 12, 12, 60),
         child: Row(
           children: [
             InkWell(
