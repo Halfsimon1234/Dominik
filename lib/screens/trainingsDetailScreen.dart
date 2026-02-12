@@ -1,6 +1,9 @@
 // Testkommentar
 // genaue Anzeige der Übungen eines Trainingsplans, hier wird auch getrackt, welche Sätze erledigt wurden
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'homescreen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class TrainingsDetailScreen extends StatefulWidget { // Stateful, dass sich Screen ändert (counter hochzählt))
   final String planId;
@@ -40,6 +43,32 @@ class _TrainingsDetailScreenState extends State<TrainingsDetailScreen> {  // hie
       wiederholungsCounter[i] = List.generate(saetze, (index) => 0);
     }
   }
+
+  // das training speichern (damit es in "letzte Trainings" angezeigt wird)
+Future<void> trainingSpeichern() async {
+  final firestore = FirebaseFirestore.instance;
+  final user = FirebaseAuth.instance.currentUser;
+
+  if (user == null) return;
+
+  List<Map<String, dynamic>> gespeicherteUebungen = [];
+
+  for (int i = 0; i < uebungen.length; i++) {
+    gespeicherteUebungen.add({
+      "name": uebungen[i]["name"],
+      "saetze": uebungen[i]["saetze"],
+      "wiederholungen": wiederholungsCounter[i],
+    });
+  }
+
+  await firestore.collection("letzteTrainings").add({
+    "planId": widget.planId,
+    "planName": widget.planData["name"],
+    "datum": Timestamp.now(),
+    "ownerUid": user.uid, 
+    "uebungen": gespeicherteUebungen,
+  });
+}
 
   // FÜR SENSOR HOCHZÄHLEN -> SPÄTER BENUTZEN 
   /*
@@ -145,8 +174,13 @@ class _TrainingsDetailScreenState extends State<TrainingsDetailScreen> {  // hie
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(16),
         child: ElevatedButton(
-          onPressed: () {
-            Navigator.popUntil(context, (route) => route.isFirst);
+          onPressed: () async {
+            await trainingSpeichern();  // das Training speichern
+
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (_) => HomeScreen()),
+              (route) => false,
+            ); // zurück zum HomeScreen
           },
           child: const Text('Fertig'),
         ),
