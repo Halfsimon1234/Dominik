@@ -56,16 +56,21 @@ class _BleReceiverPageState extends State<BleReceiverPage> {
   }
 
   Future<void> connectToDevice(BluetoothDevice device) async {
-    if (!Platform.isAndroid && !Platform.isIOS) return;
+  if (!Platform.isAndroid && !Platform.isIOS) return;
 
-    // Scan stoppen
+  try {
     FlutterBluePlus.stopScan();
 
-    // Verbindung herstellen
+    // 1. Verbindung herstellen
     await device.connect(autoConnect: false);
     connectedDevice = device;
 
-    // Services entdecken
+    // 2. WICHTIG: MTU anfordern (erhöht die Datenkapazität für Strings)
+    if (Platform.isAndroid) {
+      await device.requestMtu(223);
+    }
+
+    // 3. Services entdecken
     List<BluetoothService> services = await device.discoverServices();
 
     for (var service in services) {
@@ -74,12 +79,13 @@ class _BleReceiverPageState extends State<BleReceiverPage> {
           if (char.uuid.toString().toLowerCase() == CHAR_UUID.toLowerCase()) {
             dataChar = char;
 
-            // Notify aktivieren
+            // 4. Notify aktivieren
             await char.setNotifyValue(true);
 
-            // Wertänderungen abhören
-            char.value.listen((value) {
+            // 5. WICHTIG: Den richtigen Stream abhören (onValueReceived)
+            char.onValueReceived.listen((value) {
               String data = utf8.decode(value, allowMalformed: true);
+              print("Empfangene Rohdaten: $data"); // Debug im Terminal
               setState(() {
                 receivedData = data;
               });
@@ -88,9 +94,11 @@ class _BleReceiverPageState extends State<BleReceiverPage> {
         }
       }
     }
-
     setState(() {});
+  } catch (e) {
+    print("Fehler bei der Verbindung: $e");
   }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -109,7 +117,8 @@ class _BleReceiverPageState extends State<BleReceiverPage> {
                     itemCount: devices.length,
                     itemBuilder: (context, index) {
                       final d = devices[index].device;
-                      final name = d.name.isNotEmpty ? d.name : "Unbekanntes Gerät";
+                      if (d.platformName != "Rep-Track V1.0") return const SizedBox.shrink();
+                      final name = d.platformName.isNotEmpty ? d.platformName : "Unbekanntes Gerät";
                       return ListTile(
                         title: Text(name),
                         subtitle: Text(d.id.id),
