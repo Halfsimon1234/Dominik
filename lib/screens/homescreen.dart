@@ -78,7 +78,24 @@ class HomeScreen extends StatelessWidget {  // neues Widget HomeScreen, das von 
             ),
             SizedBox(height: buttonSpace),
 
-            // Button 4: Logout
+            // Button 4: Button: Bluetoothverbindung
+            ElevatedButton(
+              onPressed: () {
+                print('Button Bluetoothverbindung gedrückt');
+                /*
+                Navigator.push( // auf eine neue Seite navigieren
+                  context,
+                  MaterialPageRoute(  // erstelle eine neue Route (Seite)
+                    builder: (context) => const BleReceiverPage(),  // definiert, welche Seite angezeigt wird
+                  ),
+                );
+                */
+              },
+              child: const Text('Bluetooth-Verbindung'),
+            ),
+            SizedBox(height: buttonSpace),
+
+            // Button 5: Logout
             ElevatedButton(
               onPressed: () {
                 // TODO: Navigation zum Logout
