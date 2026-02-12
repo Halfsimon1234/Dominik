@@ -9,9 +9,11 @@ import 'package:permission_handler/permission_handler.dart';
 const String TARGET_SERVICE_UUID = "1234abcd-0000-1000-8000-00805f9b34fb";
 const String TARGET_CHAR_UUID = "1234abcd-0001-1000-8000-00805f9b34fb";
 
+/*
 void main() {
   runApp(const MaterialApp(home: BluetoothReceivePage()));
 }
+*/
 
 class BluetoothReceivePage extends StatefulWidget {
   const BluetoothReceivePage({super.key});
