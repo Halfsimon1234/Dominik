@@ -1,4 +1,4 @@
-#include <Arduino.h>
+/*#include <Arduino.h>
 #include <BLEDevice.h>
 #include <BLEServer.h>
 #include <BLEUtils.h>
@@ -92,4 +92,4 @@ void loop() {
   Serial.println("Distanz: " + msg);
  
   delay(1000);
-}
+}*/
