@@ -11,12 +11,6 @@ import 'rep_service.dart';
 const String TARGET_SERVICE_UUID = "1234abcd-0000-1000-8000-00805f9b34fb";
 const String TARGET_CHAR_UUID = "1234abcd-0001-1000-8000-00805f9b34fb";
 
-/*
-void main() {
-  runApp(const MaterialApp(home: BluetoothReceivePage()));
-}
-*/
-
 class BluetoothReceivePage extends StatefulWidget {
   const BluetoothReceivePage({super.key});
 
@@ -27,7 +21,6 @@ class BluetoothReceivePage extends StatefulWidget {
 class BluetoothReceivePageState extends State<BluetoothReceivePage> {
   BluetoothDevice? connectedDevice;
   List<ScanResult> scanResults = [];
-  static String reps = "0";
   bool isScanning = false;
   StreamSubscription? _valueSubscription;
 
@@ -44,7 +37,7 @@ class BluetoothReceivePageState extends State<BluetoothReceivePage> {
         Permission.bluetoothConnect,
         Permission.location,
       ].request();
-      
+
       if (statuses.values.any((element) => element.isDenied)) {
         debugPrint("Berechtigungen wurden abgelehnt");
       }
@@ -58,7 +51,7 @@ class BluetoothReceivePageState extends State<BluetoothReceivePage> {
       isScanning = true;
     });
     FlutterBluePlus.startScan(timeout: const Duration(seconds: 5));
-    
+
     FlutterBluePlus.scanResults.listen((results) {
       if (mounted) setState(() => scanResults = results);
     });
@@ -77,7 +70,7 @@ class BluetoothReceivePageState extends State<BluetoothReceivePage> {
       // 2. MTU für Android optimieren
       if (Platform.isAndroid) {
         await device.requestMtu(223);
-        await Future.delayed(const Duration(milliseconds: 500)); 
+        await Future.delayed(const Duration(milliseconds: 500));
       }
 
       // 3. Services suchen
@@ -86,10 +79,9 @@ class BluetoothReceivePageState extends State<BluetoothReceivePage> {
         if (service.uuid == Guid(TARGET_SERVICE_UUID)) {
           for (var char in service.characteristics) {
             if (char.uuid == Guid(TARGET_CHAR_UUID)) {
-              
               // 4. Benachrichtigungen (Notify) aktivieren
               await char.setNotifyValue(true);
-              
+
               // 5. Alten Stream schließen, falls vorhanden
               await _valueSubscription?.cancel();
 
@@ -97,10 +89,12 @@ class BluetoothReceivePageState extends State<BluetoothReceivePage> {
               _valueSubscription = char.onValueReceived.listen((value) {
                 if (value.isNotEmpty && mounted) {
                   String decoded = utf8.decode(value);
-                  context.read<RepService>().updateFromBluetooth(decoded);
-                  }
-                });
-                            
+                  // Provider aufrufen – listen: false, da wir im Stream sind
+                  Provider.of<RepService>(context, listen: false)
+                      .updateFromBluetooth(decoded);
+                }
+              });
+
               // Einmalig lesen, falls schon ein Wert da ist
               await char.read();
             }
@@ -117,8 +111,9 @@ class BluetoothReceivePageState extends State<BluetoothReceivePage> {
     await connectedDevice?.disconnect();
     setState(() {
       connectedDevice = null;
-      reps = "0";
     });
+    // Reset in Provider optional
+    Provider.of<RepService>(context, listen: false).resetFinished();
   }
 
   @override
@@ -153,17 +148,19 @@ class BluetoothReceivePageState extends State<BluetoothReceivePage> {
             itemCount: scanResults.length,
             itemBuilder: (context, index) {
               final d = scanResults[index].device;
-              final name = d.platformName.isEmpty ? "Unbekanntes Gerät" : d.platformName;
-              
-              // Filter auf euren Namen (Optional, könnt ihr auch weglassen zum Testen)
+              final name =
+                  d.platformName.isEmpty ? "Unbekanntes Gerät" : d.platformName;
+
+              // Optional: Filter auf euren Gerätenamen
               if (d.platformName != "Rep-Track V1.0") return const SizedBox.shrink();
-              
+
               return Card(
                 margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
                 child: ListTile(
                   title: Text(name),
                   subtitle: Text(d.remoteId.str),
-                  trailing: const Icon(Icons.bluetooth_connected, color: Colors.blue),
+                  trailing:
+                      const Icon(Icons.bluetooth_connected, color: Colors.blue),
                   onTap: () => _connect(d),
                 ),
               );
@@ -176,21 +173,36 @@ class BluetoothReceivePageState extends State<BluetoothReceivePage> {
 
   Widget _buildCounterView() {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Text("WIEDERHOLUNGEN", style: TextStyle(fontSize: 18, color: Colors.grey)),
-          Text(
-            reps,
-            style: const TextStyle(fontSize: 150, fontWeight: FontWeight.w900, color: Colors.blueAccent),
-          ),
-          const SizedBox(height: 40),
-          ElevatedButton(
-            onPressed: _disconnect,
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
-            child: const Text("Verbindung trennen", style: TextStyle(color: Colors.white)),
-          ),
-        ],
+      child: Consumer<RepService>(
+        builder: (context, repService, child) {
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text("WIEDERHOLUNGEN",
+                  style: TextStyle(fontSize: 18, color: Colors.grey)),
+              Text(
+                repService.currentReps.toString(),
+                style: const TextStyle(
+                    fontSize: 150,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.blueAccent),
+              ),
+              if (repService.finished)
+                const Text(
+                  "FERTIG!",
+                  style: TextStyle(fontSize: 24, color: Colors.redAccent),
+                ),
+              const SizedBox(height: 40),
+              ElevatedButton(
+                onPressed: _disconnect,
+                style:
+                    ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+                child: const Text("Verbindung trennen",
+                    style: TextStyle(color: Colors.white)),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
