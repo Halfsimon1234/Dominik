@@ -12,8 +12,13 @@
             "type": "platformio-debug",
             "request": "launch",
             "name": "PIO Debug",
+<<<<<<< HEAD
             "executable": "c:/Schule/Sink your Product/Flutter app/servusmona/.pio/build/my_sensor/firmware.elf",
             "projectEnvName": "my_sensor",
+=======
+            "executable": "c:/Schule/Sink your Product/Flutter app/servusmona/.pio/build/esp32dev/firmware.elf",
+            "projectEnvName": "esp32dev",
+>>>>>>> bluetooth
             "toolchainBinDir": "C:/Users/shere/.platformio/packages/toolchain-xtensa-esp32/bin",
             "internalConsoleOptions": "openOnSessionStart",
             "preLaunchTask": {
@@ -25,8 +30,13 @@
             "type": "platformio-debug",
             "request": "launch",
             "name": "PIO Debug (skip Pre-Debug)",
+<<<<<<< HEAD
             "executable": "c:/Schule/Sink your Product/Flutter app/servusmona/.pio/build/my_sensor/firmware.elf",
             "projectEnvName": "my_sensor",
+=======
+            "executable": "c:/Schule/Sink your Product/Flutter app/servusmona/.pio/build/esp32dev/firmware.elf",
+            "projectEnvName": "esp32dev",
+>>>>>>> bluetooth
             "toolchainBinDir": "C:/Users/shere/.platformio/packages/toolchain-xtensa-esp32/bin",
             "internalConsoleOptions": "openOnSessionStart"
         },
@@ -34,8 +44,13 @@
             "type": "platformio-debug",
             "request": "launch",
             "name": "PIO Debug (without uploading)",
+<<<<<<< HEAD
             "executable": "c:/Schule/Sink your Product/Flutter app/servusmona/.pio/build/my_sensor/firmware.elf",
             "projectEnvName": "my_sensor",
+=======
+            "executable": "c:/Schule/Sink your Product/Flutter app/servusmona/.pio/build/esp32dev/firmware.elf",
+            "projectEnvName": "esp32dev",
+>>>>>>> bluetooth
             "toolchainBinDir": "C:/Users/shere/.platformio/packages/toolchain-xtensa-esp32/bin",
             "internalConsoleOptions": "openOnSessionStart",
             "loadMode": "manual"
