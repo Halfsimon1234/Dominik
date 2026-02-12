@@ -1,127 +1,121 @@
-// Testkommentar
-// genaue Anzeige der Übungen eines Trainingsplans, hier wird auch getrackt, welche Sätze erledigt wurden
+// genaue Anzeige der Übungen eines Trainingsplans
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'homescreen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import '../bluetooth/rep_service.dart';
-
-class TrainingsDetailScreen extends StatefulWidget { // Stateful, dass sich Screen ändert (counter hochzählt))
+ 
+class TrainingsDetailScreen extends StatefulWidget {
   final String planId;
-  final Map<String, dynamic> planData;  // die Daten des Trainingsplans als Map 
-
-  // Konstruktor
+  final Map<String, dynamic> planData;
+ 
   const TrainingsDetailScreen({
     Key? key,
     required this.planId,
     required this.planData,
-  }) : super(key: key); // für Widget-Logik, nicht wichtig für uns
-
-   @override
+  }) : super(key: key);
+ 
+  @override
   State<TrainingsDetailScreen> createState() =>
       _TrainingsDetailScreenState();
-}  
-
-class _TrainingsDetailScreenState extends State<TrainingsDetailScreen> {  // hier sind dynamischen daten 
-
-  late List<Map<String, dynamic>> uebungen; // speichert alle Übungen 
+}
+ 
+class _TrainingsDetailScreenState extends State<TrainingsDetailScreen> {
+ 
+  late List<Map<String, dynamic>> uebungen;
   late Map<int, List<int>> wiederholungsCounter;
-
+ 
   int? aktiveUebungIndex;
   int? aktiverSatzIndex;
-
-
+ 
+  late RepService repService;
+ 
   @override
-  void initState() {  // läuft einmal, wenn Screen gestartet wird 
+  void initState() {
     super.initState();
-
-    uebungen = List<Map<String, dynamic>>.from(widget.planData['uebungen'] ?? []);  // Übungen laden 
+ 
+    uebungen = List<Map<String, dynamic>>.from(
+        widget.planData['uebungen'] ?? []);
+ 
     wiederholungsCounter = {};
-
-    // Counter vorbereitet für Wiederholungen 
+ 
     for (int i = 0; i < uebungen.length; i++) {
       int saetze = uebungen[i]['saetze'] ?? 0;
-      wiederholungsCounter[i] = List.generate(saetze, (index) => 0);
+      wiederholungsCounter[i] =
+          List.generate(saetze, (index) => 0);
     }
-  }
-
-  // das training speichern (damit es in "letzte Trainings" angezeigt wird)
-Future<void> trainingSpeichern() async {
-  final firestore = FirebaseFirestore.instance;
-  final user = FirebaseAuth.instance.currentUser;
-
-  if (user == null) return;
-
-  List<Map<String, dynamic>> gespeicherteUebungen = [];
-
-  for (int i = 0; i < uebungen.length; i++) {
-    gespeicherteUebungen.add({
-      "name": uebungen[i]["name"],
-      "saetze": uebungen[i]["saetze"],
-      "wiederholungen": wiederholungsCounter[i],
+ 
+    // 🔥 Listener nach dem ersten Frame registrieren
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      repService = Provider.of<RepService>(context, listen: false);
+      repService.addListener(_onRepUpdate);
     });
   }
-
-  await firestore.collection("letzteTrainings").add({
-    "planId": widget.planId,
-    "planName": widget.planData["name"],
-    "datum": Timestamp.now(),
-    "ownerUid": user.uid, 
-    "uebungen": gespeicherteUebungen,
-  });
-}
-
-  // FÜR SENSOR HOCHZÄHLEN -> SPÄTER BENUTZEN 
-/*
-  void RepScan() 
-  {
-    String aktuelleReps = BluetoothReceivePageState.reps;
-    print(aktuelleReps);
-
-
-    //wiederholungen erhöhen
-    if (aktiveUebungIndex != null &&  // Wenn eine Übung und ein Satz aktiv ist, dann erhöhen 
-        aktiverSatzIndex != null) {
-
-      setState(() {
-        wiederholungsCounter[aktiveUebungIndex!]!
-            [aktiverSatzIndex!]++;
-      });
-
-    }
-  }
-  */
-
-  @override
-  Widget build(BuildContext context) {
-
-    final repService = context.watch<RepService>();
-
+ 
+  void _onRepUpdate() {
+    if (!mounted) return;
+ 
     if (aktiveUebungIndex != null && aktiverSatzIndex != null) {
-      
-      // Wenn Update vom Sensor kommt
-      wiederholungsCounter[aktiveUebungIndex!]![aktiverSatzIndex!] =
-          repService.currentReps;
-      
-      // Wenn fertig Signal kommt
+      setState(() {
+        wiederholungsCounter[aktiveUebungIndex!]![aktiverSatzIndex!] =
+            repService.currentReps;
+      });
+ 
       if (repService.finished) {
         repService.resetFinished();
-      
-        aktiverSatzIndex = null;
-        aktiveUebungIndex = null;
+        setState(() {
+          aktiveUebungIndex = null;
+          aktiverSatzIndex = null;
+        });
       }
     }
+  }
+ 
+  @override
+  void dispose() {
+    repService.removeListener(_onRepUpdate);
+    super.dispose();
+  }
+ 
+  Future<void> trainingSpeichern() async {
+    final firestore = FirebaseFirestore.instance;
+    final user = FirebaseAuth.instance.currentUser;
+ 
+    if (user == null) return;
+ 
+    List<Map<String, dynamic>> gespeicherteUebungen = [];
+ 
+    for (int i = 0; i < uebungen.length; i++) {
+      gespeicherteUebungen.add({
+        "name": uebungen[i]["name"],
+        "saetze": uebungen[i]["saetze"],
+        "wiederholungen": wiederholungsCounter[i],
+      });
+    }
+ 
+    await firestore.collection("letzteTrainings").add({
+      "planId": widget.planId,
+      "planName": widget.planData["name"],
+      "datum": Timestamp.now(),
+      "ownerUid": user.uid,
+      "uebungen": gespeicherteUebungen,
+    });
+  }
+ 
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.planData['name'] ?? 'Training')),
-      body: ListView.builder( // scrollbare Liste der Übungen
+      appBar: AppBar(
+        title: Text(widget.planData['name'] ?? 'Training'),
+      ),
+      body: ListView.builder(
         padding: const EdgeInsets.all(16),
-        itemCount: uebungen.length, // Anzahl der Übungen im Plan
+        itemCount: uebungen.length,
         itemBuilder: (context, index) {
           final uebung = uebungen[index];
           final saetze = uebung['saetze'] ?? 0;
-
-          // Einzelne Übung anzeigen 
+ 
           return Card(
             margin: const EdgeInsets.symmetric(vertical: 8),
             child: Padding(
@@ -132,11 +126,10 @@ Future<void> trainingSpeichern() async {
                   Text(
                     uebung['name'] ?? 'Übung',
                     style: const TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.bold),
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 10),
-
-                  // Unterkästchen für jeden Satz
                   Column(
                     children: List.generate(saetze, (satzIndex) {
                       return Container(
@@ -144,40 +137,39 @@ Future<void> trainingSpeichern() async {
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
                           color: (aktiveUebungIndex == index &&
-                                aktiverSatzIndex == satzIndex)
-                            ? Colors.blue.shade100
-                            : Colors.white,
+                                  aktiverSatzIndex == satzIndex)
+                              ? Colors.blue.shade100
+                              : Colors.white,
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(color: Colors.grey.shade300),
                         ),
-                        child: Row( // Row enthät Checkbox und SatzText und Wiederholungszahl
+                        child: Row(
                           children: [
-                            Checkbox( // Checkbox nur aktiv, wenn es die aktuelle Übung der aktuelle Satz ist
+                            Checkbox(
                               value: aktiveUebungIndex == index &&
-                                    aktiverSatzIndex == satzIndex,
+                                  aktiverSatzIndex == satzIndex,
                               onChanged: (value) {
-                                setState(() { // alles neu Zeichnen, wenn sich etwas ändert 
-                                  if (value == true) {  // wenn man Kästchen anklcikt, man kann nur eine Übung gleichzeitig, da nur 1 index speicherstelle 
-                                    // Dieser Satz wird aktiv
+                                setState(() {
+                                  if (value == true) {
                                     aktiveUebungIndex = index;
                                     aktiverSatzIndex = satzIndex;
                                   } else {
-                                    // Falls man wieder deaktivieren will
                                     aktiveUebungIndex = null;
                                     aktiverSatzIndex = null;
                                   }
                                 });
                               },
                             ),
-
-                            Expanded( // sorgt dafür, dass Text den restlichen Platz einnimmt
+                            Expanded(
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
                                     '${satzIndex + 1}. Satz:',
                                     style: const TextStyle(
-                                        fontWeight: FontWeight.w500),
+                                        fontWeight:
+                                            FontWeight.w500),
                                   ),
                                   Text(
                                     '${wiederholungsCounter[index]![satzIndex]} Wiederholungen',
@@ -200,12 +192,12 @@ Future<void> trainingSpeichern() async {
         padding: const EdgeInsets.all(16),
         child: ElevatedButton(
           onPressed: () async {
-            await trainingSpeichern();  // das Training speichern
-
+            await trainingSpeichern();
             Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(builder: (_) => HomeScreen()),
+              MaterialPageRoute(
+                  builder: (_) => HomeScreen()),
               (route) => false,
-            ); // zurück zum HomeScreen
+            );
           },
           child: const Text('Fertig'),
         ),
