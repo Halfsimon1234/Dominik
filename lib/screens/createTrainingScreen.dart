@@ -1,130 +1,140 @@
-// Trainingsplan erstellen Screen
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'models/trainingsplan.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-class TrainingsplanScreen extends StatefulWidget {  // stateful, da man dynamisch Übungen hinzufügt
+class _uebungsKastenData {
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController saetzeController = TextEditingController();
+  final TextEditingController wiederhController = TextEditingController();
+}
+
+class TrainingsplanScreen extends StatefulWidget {
   const TrainingsplanScreen({Key? key}) : super(key: key);
 
   @override
-  State<TrainingsplanScreen> createState() => _TrainingsplanScreenState();  // TrainingsplanSCreenState ist der Speicher + Logik für die Seite
+  State<TrainingsplanScreen> createState() => _TrainingsplanScreenState();
 }
 
-class _TrainingsplanScreenState extends State<TrainingsplanScreen> {  // State-Klasse
-  // Liste der Übungen (nur für die Anzahl der Kästchen)
-  final List<int> _uebungen = []; // Anzahl der Übungen -> wie viele Kästchen gezeichnet werden sollen
+class _TrainingsplanScreenState extends State<TrainingsplanScreen> {
+  final TextEditingController _planNameController = TextEditingController();
+
+  final List<_uebungsKastenData> _uebungsData = [];
+
+  // Übung hinzufügen
+  void _addUebung() {
+    setState(() {
+      _uebungsData.add(_uebungsKastenData());
+    });
+  }
+
+  // Trainingsplan speichern
+  Future<void> _savePlan() async {
+    String planName = _planNameController.text.trim();
+    if (planName.isEmpty) return;
+
+    List<Uebung> uebungenListe = _uebungsData.map((data) {
+      return Uebung(
+        name: data.nameController.text,
+        saetze: int.tryParse(data.saetzeController.text) ?? 0,
+        wiederholungen: int.tryParse(data.wiederhController.text) ?? 0,
+      );
+    }).toList();
+
+    Trainingsplan plan =
+        Trainingsplan(name: planName, uebungen: uebungenListe);
+
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+
+    await FirebaseFirestore.instance.collection('trainingsplaene').add({
+      ...plan.toMap(),
+      'ownerUid': uid,
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Trainingsplan gespeichert!')),
+    );
+
+    Navigator.pop(context);
+  }
 
   @override
-  Widget build(BuildContext context) {  // build-Methode zeichnet die Seite (Flutter ruft sie beim ersten Anzeigen und bei setState() auf)
-    return Scaffold(  // Grundgerüst
-      appBar: AppBar(
-        title: const Text('Trainingsplan erstellen'),
-      ),
+  void dispose() {
+    _planNameController.dispose();
+    for (var e in _uebungsData) {
+      e.nameController.dispose();
+      e.saetzeController.dispose();
+      e.wiederhController.dispose();
+    }
+    super.dispose();
+  }
 
-      
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Trainingsplan erstellen')),
+
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(12),
         child: Row(
           children: [
-            // Übung hinzufügen (links)
             InkWell(
-              onTap: () {
-                setState(() {
-                  _uebungen.add(_uebungen.length);
-                });
-              },
+              onTap: _addUebung,
               child: Row(
                 children: const [
-                  Icon(Icons.add),  // Plus-Symbol, von Material Bibliothek
+                  Icon(Icons.add),
                   SizedBox(width: 6),
                   Text('Übung hinzufügen'),
                 ],
               ),
             ),
-
             const Spacer(),
-
-            // Fertig Button (rechts)
             ElevatedButton(
-              onPressed: () {
-                // TODO: Fertig
-                print('Trainingsplan fertig');
-              },
+              onPressed: _savePlan,
               child: const Text('Fertig'),
             ),
           ],
         ),
       ),
 
-
       body: Padding(
-        padding: const EdgeInsets.all(16),  // Abstand zum Rand
-        child: Column(  // alles untereinander ausrichten
+        padding: const EdgeInsets.all(16),
+        child: Column(
           children: [
-            // Name des Trainingsplans
             TextField(
-              decoration: const InputDecoration(   // Styling
+              controller: _planNameController,
+              decoration: const InputDecoration(
                 labelText: 'Name des Trainingsplans',
                 border: OutlineInputBorder(),
               ),
             ),
-
             const SizedBox(height: 24),
 
-            // Überschriften
-            Row(  // alles nebeneinander ausrichten
+            Row(
               children: const [
-                Expanded(
-                  flex: 3,  // Feld 3 Mal so breit wie die anderen
-                  child: Center(
-                    child: Text(
-                      'Übung',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  flex: 1,
-                  child: Center(
-                    child: Text(
-                      'Sätze',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  flex: 1,
-                  child: Center(
-                    child: Text(
-                      'Wiederh.',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ),
+                Expanded(flex: 3, child: Center(child: Text('Übung', style: TextStyle(fontWeight: FontWeight.bold)))),
+                Expanded(flex: 1, child: Center(child: Text('Sätze', style: TextStyle(fontWeight: FontWeight.bold)))),
+                Expanded(flex: 1, child: Center(child: Text('Wh', style: TextStyle(fontWeight: FontWeight.bold)))),
               ],
             ),
+            const SizedBox(height: 10),
 
-            const SizedBox(height: 8),
-
-            // Dynamische Liste der Übungs-Kästchen
-            Expanded( // damit die Liste scrollen kann
+            Expanded(
               child: ListView.builder(
-                itemCount: _uebungen.length,  // soviele Kästchen, wie Elemente in _uebungen
-                itemBuilder: (context, index) { // jedes Kästchen einzeln zeichnen 
-                  return _uebungsKasten();
-                },
+                itemCount: _uebungsData.length,
+                itemBuilder: (context, index) => _uebungsKasten(index),
               ),
             ),
-
-            const SizedBox(height: 12),
           ],
         ),
       ),
     );
   }
 
-  // Ausgelagerte Funktion
-  // Einzelnes Übungs-Kästchen
-  Widget _uebungsKasten() {
-    return Container( // Rahmen um die Textfelder
+  Widget _uebungsKasten(int index) {
+    final data = _uebungsData[index];
+
+    return Container(
       margin: const EdgeInsets.symmetric(vertical: 6),
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
@@ -132,11 +142,11 @@ class _TrainingsplanScreenState extends State<TrainingsplanScreen> {  // State-K
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
-        children: [ // 3 Felder nebeneinander 
-          // Übungsname
+        children: [
           Expanded(
             flex: 3,
             child: TextField(
+              controller: data.nameController,
               decoration: const InputDecoration(
                 hintText: 'Name...',
                 border: OutlineInputBorder(),
@@ -144,31 +154,27 @@ class _TrainingsplanScreenState extends State<TrainingsplanScreen> {  // State-K
               ),
             ),
           ),
-
           const SizedBox(width: 8),
-
-          // Sätze
           Expanded(
             flex: 1,
             child: TextField(
+              controller: data.saetzeController,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(
-                hintText: 'Sätze...',
+                hintText: 'Sätze',
                 border: OutlineInputBorder(),
                 isDense: true,
               ),
             ),
           ),
-
           const SizedBox(width: 8),
-
-          // Wiederholungen
           Expanded(
             flex: 1,
             child: TextField(
+              controller: data.wiederhController,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(
-                hintText: 'Wh...',
+                hintText: 'Wh',
                 border: OutlineInputBorder(),
                 isDense: true,
               ),
@@ -179,5 +185,3 @@ class _TrainingsplanScreenState extends State<TrainingsplanScreen> {  // State-K
     );
   }
 }
-
-
