@@ -44,8 +44,11 @@ class LastTrainingsScreen extends StatelessWidget {
             itemCount: trainings.length,
             itemBuilder: (context, index) {
               final data = trainings[index];
-              final planName = data["planName"] ?? "Unbekannt";
-              final Timestamp timestamp = data["datum"];
+              final dataMap = data.data() as Map<String, dynamic>;
+              final planName = dataMap["planName"] ?? "Unbekannt";
+              final uebungen =
+                  List<Map<String, dynamic>>.from(dataMap["uebungen"] ?? []);
+              final Timestamp timestamp = dataMap["datum"];
               final date = timestamp.toDate();
 
               return Card(
@@ -61,7 +64,8 @@ class LastTrainingsScreen extends StatelessWidget {
                   ),
                   trailing: const Icon(Icons.visibility),
                   onTap: () {
-                    _showTrainingDetails(context, data);
+                    // ⚡ hier die sauberen Daten an Dialog übergeben
+                    _showTrainingDetails(context, planName, uebungen);
                   },
                 ),
               );
@@ -74,16 +78,13 @@ class LastTrainingsScreen extends StatelessWidget {
 
   // 🔥 Dialog mit Übungen + Sätzen + Wiederholungen
   void _showTrainingDetails(
-      BuildContext context, QueryDocumentSnapshot data) {
-
-    final uebungen =
-        List<Map<String, dynamic>>.from(data["uebungen"] ?? []);
+      BuildContext context, String planName, List<Map<String, dynamic>> uebungen) {
 
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text(data["planName"] ?? "Training"),
+          title: Text(planName),
           content: SizedBox(
             width: double.maxFinite,
             child: SingleChildScrollView(
@@ -92,8 +93,7 @@ class LastTrainingsScreen extends StatelessWidget {
                 children: uebungen.map((uebung) {
 
                   final name = uebung["name"] ?? "Übung";
-                  final reps =
-                      List<int>.from(uebung["wiederholungen"] ?? []);
+                  final reps = List<int>.from(uebung["wiederholungen"] ?? []);
 
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -107,7 +107,6 @@ class LastTrainingsScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 5),
-
                       Column(
                         children: List.generate(reps.length, (i) {
                           return Align(
