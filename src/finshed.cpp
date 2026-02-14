@@ -112,6 +112,7 @@ void setup() {
 }
 
 void loop() {
+
     // 1️⃣ Warten bis gedrückt
   while (digitalRead(Butt_PIN) == LOW) {
     Serial.println("not pressed");
@@ -130,7 +131,6 @@ void loop() {
 
   delay(50); // Entprellen
 
-  repCounter = 0;
     
   while (digitalRead(Butt_PIN) == LOW) {
         currentDist = getDistance();
@@ -155,8 +155,10 @@ void loop() {
             repIsArmed = false;
             Serial.printf("  [REP] %d\n", repCounter);
             if (deviceConnected) { 
-                char b[5]; 
-                itoa(repCounter, b, 10); 
+                char b[8];
+                b[0] = 'u';                  // Prefix setzen
+                itoa(repCounter, &b[1], 10); // Zahl ab Position 1 schreiben
+
                 pCharacteristic->setValue(b); 
                 pCharacteristic->notify(); 
             }
@@ -173,8 +175,10 @@ void loop() {
             repIsArmed = false;
             Serial.printf("  [REP] %d\n", repCounter);
             if (deviceConnected) { 
-                char b[5]; 
-                itoa(repCounter, b, 10); 
+                char b[8];
+                b[0] = 'u';                  // Prefix setzen
+                itoa(repCounter, &b[1], 10); // Zahl ab Position 1 schreiben
+
                 pCharacteristic->setValue(b); 
                 pCharacteristic->notify(); 
             }
@@ -195,4 +199,15 @@ void loop() {
     }
 
     delay(30);
+
+    char b[8];
+    b[0] = 'f';                  // Prefix setzen
+    itoa(repCounter, &b[1], 10); // Zahl ab Position 1 schreiben
+
+    pCharacteristic->setValue(b); 
+    pCharacteristic->notify(); 
+    delay(30);
+
+    repCounter = 0;
+
 }
